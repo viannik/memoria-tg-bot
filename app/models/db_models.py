@@ -3,7 +3,7 @@ from tortoise_vector.field import VectorField
 
 # chats: id type title username
 class Chat(models.Model):
-    id = fields.IntField(pk=True)
+    id = fields.BigIntField(pk=True)
     type = fields.CharField(max_length=32, null=True)
     title = fields.CharField(max_length=255, null=True)
     username = fields.CharField(max_length=32, null=True)
@@ -12,7 +12,7 @@ class Chat(models.Model):
 
 # users: id first_name last_name username language_code
 class User(models.Model):
-    id = fields.IntField(pk=True)
+    id = fields.BigIntField(pk=True)
     first_name = fields.CharField(max_length=64, null=True)
     last_name = fields.CharField(max_length=64, null=True)
     username = fields.CharField(max_length=32, null=True)
@@ -22,7 +22,7 @@ class User(models.Model):
 
 # messages: id from_user chat text entities media_type media reply_to forward_from forward_from_chat forward_from_message_id
 class Message(models.Model):
-    id = fields.IntField(pk=True)
+    id = fields.BigIntField(pk=True)
     from_user = fields.ForeignKeyField('models.User', related_name='messages')
     chat = fields.ForeignKeyField('models.Chat', related_name='messages')
     text = fields.TextField(null=True)
