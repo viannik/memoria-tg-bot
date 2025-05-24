@@ -9,11 +9,14 @@ from app.models.db_models import User, Chat, Message, Media, ChunkEmbedding
 
 logger = logging.getLogger(__name__)
 
+from app.services.chunking import refresh_latest_chunk_for_chat
+
 async def process_message(message: types.Message) -> Optional[str]:
     """Process an incoming message and return a response if needed"""
     # Save the message to the database
-    await save_message(message) 
-    
+    saved_msg = await save_message(message)
+    # Refresh chunk for this chat
+    await refresh_latest_chunk_for_chat(saved_msg.chat_id)
     return None
 
 async def save_message(message: types.Message) -> Message:

@@ -3,6 +3,7 @@ from aiogram import types, F, Router, Dispatcher
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
+from app.services.chunking import auto_chunk_all_chats
 from app.services.message_processor import process_message
 
 # Create router
@@ -23,6 +24,12 @@ async def cmd_start(message: types.Message):
         "You can ask me about previous conversations, and I'll try to help!"
     )
     await message.answer(welcome_text)
+
+@router.message(Command("chunk"))
+async def cmd_chunk(message: types.Message):
+    """Handle /chunk command"""
+    await auto_chunk_all_chats()
+    await message.answer("Chunking completed!")
 
 @router.message()
 async def handle_message(message: types.Message, state: FSMContext):
