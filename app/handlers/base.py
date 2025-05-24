@@ -36,4 +36,4 @@ async def handle_message(message: types.Message, state: FSMContext):
             await message.answer(response)
     except Exception as e:
         logger.error(f"Error processing message: {e}", exc_info=True)
-        await message.answer("Sorry, I encountered an error processing your message. Please try again later.")
+        #await message.answer("Sorry, I encountered an error processing your message. Please try again later.")

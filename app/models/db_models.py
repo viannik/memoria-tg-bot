@@ -25,6 +25,7 @@ class Message(models.Model):
     id = fields.BigIntField(pk=True)
     from_user = fields.ForeignKeyField('models.User', related_name='messages')
     chat = fields.ForeignKeyField('models.Chat', related_name='messages')
+    date = fields.DatetimeField(null=False)
     text = fields.TextField(null=True)
     entities = fields.JSONField(null=True)
     media = fields.ForeignKeyField('models.Media', related_name='messages', null=True)
@@ -40,6 +41,9 @@ class Message(models.Model):
 
     class Meta:
         table = "messages"
+        indexes = [
+            ('chat', 'date'),
+        ]
 
 
 class Media(models.Model):

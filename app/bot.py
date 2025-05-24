@@ -73,4 +73,7 @@ async def main():
         await on_shutdown()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logging.info("Bot stopped by user (Ctrl+C)")

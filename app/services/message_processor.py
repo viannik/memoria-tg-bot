@@ -1,6 +1,6 @@
 import logging
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 from aiogram import types
 from tortoise.transactions import in_transaction
@@ -160,6 +160,7 @@ async def save_message(message: types.Message) -> Message:
         'id': message.message_id,
         'from_user': user,
         'chat': chat,
+        'date': message.date if hasattr(message, 'date') else datetime.now(timezone.utc),
         'text': message.text or message.caption,
         'entities': serialize_entities(message.entities or getattr(message, 'caption_entities', None)),
         'media': media_obj,
