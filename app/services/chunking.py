@@ -1,12 +1,11 @@
-import logging
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
 from app.models.db_models import Message
-
 from app.config import CHUNK_SIZE, CHUNK_OVERLAP
 from app.models.db_models import ChunkEmbedding, User, Media
 from tortoise.functions import Count
+from app.utils.logging_config import logger, log_exception, log_function_call
 
 async def get_unchunked_messages(chat_id: int) -> List[str]:
     """Return formatted messages in a chat not yet associated with any chunk, ordered by date."""
@@ -92,6 +91,7 @@ async def auto_chunk_chat(chat_id: int):
         end_id = msg_ids[-1] if msg_ids else 0
         logging.info(f"[CHUNK] New chunk created for chat {chat_id}: messages {start_id}-{end_id}, chunk_id={chunk.id}")
 
+@log_function_call
 async def refresh_latest_chunk_for_chat(chat_id: int):
     '''
     Refresh (recreate) the latest chunk for a chat if enough new messages have arrived to slide the chunk window.
@@ -135,7 +135,7 @@ async def refresh_latest_chunk_for_chat(chat_id: int):
             msg_ids = [m.id for m in chunk_msgs]
             start_id = msg_ids[0] if msg_ids else 0
             end_id = msg_ids[-1] if msg_ids else 0
-            logging.info(f"[CHUNK] New chunk created for chat {chat_id}: messages {start_id}-{end_id}, chunk_id={chunk.id}")
+            logger.info(f"[CHUNK] New chunk created for chat {chat_id}: messages {start_id}-{end_id}, chunk_id={chunk.id}")
 
     else:
         # No existing chunk, create the first one if enough messages

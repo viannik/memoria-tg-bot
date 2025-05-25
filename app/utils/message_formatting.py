@@ -39,6 +39,9 @@ def format_entities(text: str, entities: Optional[list]) -> str:
         text = text[:offset] + segment + text[offset+length:]
     return text
 
+from app.utils.logging_config import logger, log_exception, log_function_call
+
+@log_function_call
 def format_message_for_display(message) -> str:
     """
     Formats a DB Message object into a readable string for display/chunking.
@@ -75,6 +78,6 @@ def format_message_for_display(message) -> str:
     media = getattr(message, 'media', None)
     media_str = f" ({media.media_type})" if media and getattr(media, 'media_type', None) else ""
 
-    return f"{dt} {user_str}{forward_str}{reply_str}{media_str}: {text}"
+    return f"{dt} {user_str}{forward_str}{reply_str}:{media_str} {text}"
 
 # (Optional) aiogram support can be added here if needed in the future.

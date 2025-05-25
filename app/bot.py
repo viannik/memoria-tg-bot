@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import time
 from aiogram import Bot, Dispatcher, types
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -7,15 +6,9 @@ from aiogram.fsm.strategy import FSMStrategy
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 
-from app.config import TELEGRAM_BOT_TOKEN, LOG_LEVEL, LOG_FORMAT
+from app.config import TELEGRAM_BOT_TOKEN
 from app.db import init_db, close_db
-
-# Configure logging
-logging.basicConfig(
-    level=LOG_LEVEL,
-    format=LOG_FORMAT
-)
-logger = logging.getLogger(__name__)
+from app.utils.logging_config import logger
 
 # Initialize bot and dispatcher
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
@@ -76,4 +69,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logging.info("Bot stopped by user (Ctrl+C)")
+        logger.info("Bot stopped by user (Ctrl+C)")

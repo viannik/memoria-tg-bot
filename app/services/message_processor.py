@@ -1,4 +1,4 @@
-import logging
+from app.utils.logging_config import logger, log_exception, log_function_call
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 
@@ -6,18 +6,22 @@ from aiogram import types
 from tortoise.transactions import in_transaction
 
 from app.models.db_models import User, Chat, Message, Media, ChunkEmbedding
-
-logger = logging.getLogger(__name__)
-
 from app.services.chunking import refresh_latest_chunk_for_chat
 
+@log_function_call
 async def process_message(message: types.Message) -> Optional[str]:
     """Process an incoming message and return a response if needed"""
-    # Save the message to the database
-    saved_msg = await save_message(message)
-    # Refresh chunk for this chat
-    await refresh_latest_chunk_for_chat(saved_msg.chat_id)
-    return None
+    try:
+        # Save the message to the database
+        saved_msg = await save_message(message)
+        # Refresh chunk for this chat
+        await refresh_latest_chunk_for_chat(saved_msg.chat_id)
+        logger.info(f"Message {message.message_id} from {message.from_user.username} processed successfully")
+        return None
+    except Exception as e:
+        log_exception(e)
+        logger.error(f"Error processing message {message.message_id}: {str(e)}")
+        return None
 
 async def save_message(message: types.Message) -> Message:
     """Save a message to the database with full support for new DB structure."""
