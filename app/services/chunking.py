@@ -8,13 +8,15 @@ from app.config import CHUNK_SIZE, CHUNK_OVERLAP
 from app.models.db_models import ChunkEmbedding, User, Media
 from tortoise.functions import Count
 
-async def get_unchunked_messages(chat_id: int) -> List[Message]:
-    """Return messages in a chat not yet associated with any chunk, ordered by date."""
-    return await Message.filter(chat_id=chat_id)\
+async def get_unchunked_messages(chat_id: int) -> List[str]:
+    """Return formatted messages in a chat not yet associated with any chunk, ordered by date."""
+    messages = await Message.filter(chat_id=chat_id)\
         .annotate(num_chunks=Count("chunks_embeddings"))\
         .filter(num_chunks=0)\
         .order_by("date")\
+        .prefetch_related('from_user', 'chat', 'forward_from_user', 'forward_from_chat', 'reply_to_message', 'media')\
         .all()
+    return [format_message_for_display(m) for m in messages]
 
 def get_chunk_windows(total: int, size: int, overlap: int):
     """Yield (start, end) indices for chunking with overlap."""
@@ -22,10 +24,28 @@ def get_chunk_windows(total: int, size: int, overlap: int):
     for idx in range(0, total - size + 1, step):
         yield idx, idx + size
 
+from app.utils.message_formatting import format_message_for_display
+
 async def auto_chunk_chat(chat_id: int):
     """Create new chunks for a chat from unchunked messages, using configured size and overlap."""
-    messages = await get_unchunked_messages(chat_id)
-    n = len(messages)
+    formatted_messages = await get_unchunked_messages(chat_id)
+    n = len(formatted_messages)
+    if n == 0:
+        return
+    windows = list(get_chunk_windows(n, CHUNK_SIZE, CHUNK_OVERLAP))
+    # Re-fetch message objects for association
+    messages = await Message.filter(chat_id=chat_id)\
+        .annotate(num_chunks=Count("chunks_embeddings"))\
+        .filter(num_chunks=0)\
+        .order_by("date")\
+        .all()
+    for idx, (start, end) in enumerate(windows):
+        chunk_text = "\n".join(formatted_messages[start:end])
+        chunk = await ChunkEmbedding.create(
+            chat_id=chat_id,
+            text=chunk_text
+        )
+        await chunk.messages.add(*[m.id for m in messages[start:end]])
     if n < CHUNK_SIZE:
         return
     msg_ids = [m.id for m in messages]
@@ -76,7 +96,7 @@ async def refresh_latest_chunk_for_chat(chat_id: int):
             await latest_chunk.delete()
             # Use the last CHUNK_SIZE messages
             chunk_msgs = messages[-CHUNK_SIZE:]
-            chunk_text = '\n'.join([m.text or '' for m in chunk_msgs if m.text])
+            chunk_text = '\n'.join([format_message_for_display(m) for m in chunk_msgs])
             from_time = chunk_msgs[0].date.timestamp() if chunk_msgs else None
             to_time = chunk_msgs[-1].date.timestamp() if chunk_msgs else None
             chunk = await ChunkEmbedding.create(
@@ -95,7 +115,7 @@ async def refresh_latest_chunk_for_chat(chat_id: int):
         # No existing chunk, create the first one if enough messages
         chunk_msgs = messages[-CHUNK_SIZE:]
         if len(chunk_msgs) == CHUNK_SIZE:
-            chunk_text = '\n'.join([m.text or '' for m in chunk_msgs if m.text])
+            chunk_text = '\n'.join([format_message_for_display(m) for m in chunk_msgs])
             from_time = chunk_msgs[0].date.timestamp() if chunk_msgs else None
             to_time = chunk_msgs[-1].date.timestamp() if chunk_msgs else None
             chunk = await ChunkEmbedding.create(
