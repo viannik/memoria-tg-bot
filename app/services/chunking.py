@@ -33,6 +33,7 @@ async def auto_chunk_chat(chat_id: int):
         chunk_msgs = messages[start:end]
         chunk_text = '\n'.join(m.text or '' for m in chunk_msgs if m.text)
         chunk = await ChunkEmbedding.create(
+            chat_id=chat_id,
             chunk_text=chunk_text,
             from_time=chunk_msgs[0].date.timestamp(),
             to_time=chunk_msgs[-1].date.timestamp()

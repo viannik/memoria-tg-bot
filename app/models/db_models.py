@@ -63,19 +63,17 @@ class Media(models.Model):
 # chunks_embeddings: id messages(один до багатьох) chunk_text embedding from_time to_time users(один до багатьох) medias(один до багатьох)
 class ChunkEmbedding(models.Model):
     id = fields.IntField(pk=True)
+    chat = fields.ForeignKeyField('models.Chat', related_name='chunks', null=False)  # Direct link to chat
     chunk_text = fields.TextField(null=True)
     embedding = VectorField(vector_size=1536, null=True)
     from_time = fields.FloatField(null=True)
     to_time = fields.FloatField(null=True)
-    messages = fields.ManyToManyField('models.Message', related_name='chunks_embeddings')
-    users = fields.ManyToManyField('models.User', related_name='chunks_embeddings')
-    medias = fields.ManyToManyField('models.Media', related_name='chunks_embeddings')
+    messages = fields.ManyToManyField('models.Message', related_name='chunks')
+    users = fields.ManyToManyField('models.User', related_name='chunks')
+    medias = fields.ManyToManyField('models.Media', related_name='chunks')
 
     class Meta:
-        table = "chunks_embeddings"
-
-    class Meta:
-        table = "chunk"
+        table = "chunks"
         indexes = ["embedding"]  # This enables pgvector indexing
 
     def __str__(self):

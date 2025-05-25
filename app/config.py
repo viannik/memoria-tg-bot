@@ -22,6 +22,17 @@ POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 DATABASE_URL = os.getenv("DATABASE_URL") or \
     f"postgres://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
+# Tortoise ORM
+TORTOISE_ORM = {
+    "connections": {"default": DATABASE_URL},
+    "apps": {
+        "models": {
+            "models": ["app.models.db_models", "aerich.models"],
+            "default_connection": "default",
+        },
+    },
+}
+
 # OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
