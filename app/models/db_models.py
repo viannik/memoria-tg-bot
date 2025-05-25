@@ -17,6 +17,13 @@ class User(models.Model):
     last_name = fields.CharField(max_length=64, null=True)
     username = fields.CharField(max_length=32, null=True)
     language_code = fields.CharField(max_length=8, null=True)
+
+    @property
+    def full_name(self) -> str:
+        fn = self.first_name or ''
+        ln = self.last_name or ''
+        return (fn + (' ' + ln if ln else '')).strip()
+
     class Meta:
         table = "users"
 
