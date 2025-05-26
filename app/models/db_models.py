@@ -40,11 +40,11 @@ class Message(models.Model):
     # Forwarded message fields
     forward_from_user = fields.ForeignKeyField('models.User', related_name='forwarded_from_user_messages', null=True)
     forward_from_chat = fields.ForeignKeyField('models.Chat', related_name='forwarded_from_chat_messages', null=True)
-    forward_from_message = fields.ForeignKeyField('models.Message', related_name='forwarded_from_messages', null=True)
+    forward_from_message = fields.ForeignKeyField('models.Message', related_name='forwarded_from_messages', null=True, db_constraint=False)
     forward_sender_name = fields.CharField(max_length=255, null=True)
 
     # Reply field
-    reply_to_message = fields.ForeignKeyField('models.Message', related_name='replies', null=True)
+    reply_to_message = fields.ForeignKeyField('models.Message', related_name='replies', null=True, db_constraint=False)
 
     class Meta:
         table = "messages"
